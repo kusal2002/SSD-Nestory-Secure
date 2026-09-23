@@ -1,0 +1,37 @@
+# Load test for reading / session endpoints.
+# Prerequisites: API running (e.g. npm run dev in backend) and a valid JWT for a child account.
+#
+# Run without auth (light public traffic):
+#   npx artillery run performance/reading-sessions.yml
+#
+# Run with a real child JWT (otherwise this scenario returns 401, which still exercises the stack):
+#   npx artillery run performance/reading-sessions.yml --variables '{"token":"YOUR_JWT"}'
+#
+config:
+  target: "http://localhost:5000"
+  variables:
+    token: ""
+  phases:
+    - duration: 30
+      arrivalRate: 5
+      name: steady load
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
+scenarios:
+  - name: public and sessions ping
+    weight: 3
+    flow:
+      - get:
+          url: "/"
+      - get:
+          url: "/api/sessions/"
+
+  - name: child my-sessions
+    weight: 1
+    flow:
+      - get:
+          url: "/api/sessions/my-sessions"
+          headers:
+            Authorization: "Bearer {{ token }}"

@@ -1,0 +1,60 @@
+{
+  "name": "nestory",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:unit": "playwright test tests/unit",
+    "test:integration": "playwright test tests/integration",
+    "test:system": "playwright test tests/system",
+    "test:report": "playwright show-report",
+    "test:debug": "playwright test --debug",
+    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && npm start",
+    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "moduleDirectories": [
+      "node_modules",
+      "backend"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/tests/example.spec.js"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/tests/storyLibrary/setup/testSetup.js"
+    ],
+    "moduleNameMapper": {
+      "^models/(.*)$": "<rootDir>/backend/models/storyLibrary/$1",
+      "^services/(.*)$": "<rootDir>/backend/services/storyLibrary/$1"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nestory-Organization/Nestory.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Nestory-Organization/Nestory/issues"
+  },
+  "homepage": "https://github.com/Nestory-Organization/Nestory#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^25.3.5",
+    "concurrently": "^8.2.0",
+    "jest": "^30.3.0",
+    "supertest": "^7.2.2"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "axios": "^1.15.0",
+    "framer-motion": "^12.38.0"
+  }
+}
