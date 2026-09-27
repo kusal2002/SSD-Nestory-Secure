@@ -1,0 +1,36 @@
+meta {
+  name: 03. AFTER - Upload Legitimate PDF (Accepted 201)
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:5050/api/stories
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:multipart-form {
+  title: Legitimate Story Book
+  author: Genuine Author
+  description: Testing valid PDF upload
+  ageGroup: middle-grade
+  readingLevel: beginner
+  genres: ["adventure"]
+  pdf: @file(payloads/p&l report.pdf) @contentType(application/pdf)
+}
+
+vars:pre-request {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhYjc3YjdkNTU0NzM2MWU2NGQwMjQxOSIsImlhdCI6MTc5MDQ5MzE4NSwiZXhwIjoxNzkzMDg1MTg1fQ.sSJGPKrMWnE4UEes9w7BaFmEY86WxRLHyeN9Dpv593M
+}
+
+docs {
+  # VULN-01 Remediation Verification (Valid File)
+  
+  ## Objective:
+  Verify that genuine PDF files with valid `%PDF-` magic header continue to upload properly with HTTP 201 Created.
+}

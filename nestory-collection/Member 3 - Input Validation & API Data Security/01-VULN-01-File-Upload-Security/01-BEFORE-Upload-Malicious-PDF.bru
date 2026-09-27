@@ -1,0 +1,43 @@
+meta {
+  name: 01. BEFORE - Upload Malicious Script Disguised as PDF
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost:5050/api/stories
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:multipart-form {
+  title: Injected Exploit Story
+  author: Exploit Author
+  description: Vulnerability demonstration for VULN-01 file upload
+  ageGroup: middle-grade
+  readingLevel: beginner
+  genres: ["adventure"]
+  pdf: @file(payloads/malicious_doc.pdf) @contentType(application/pdf)
+}
+
+vars:pre-request {
+  base_url: http://localhost:5050
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhYjc3YjdkNTU0NzM2MWU2NGQwMjQxOSIsImlhdCI6MTc5MDQ1MjIwMiwiZXhwIjoxNzkzMDQ0MjAyfQ.WVusDLtPExSB1L5Z8dGUrRADUxdLAyZ1Mu180qRnLL4
+}
+
+docs {
+  # VULN-01: Insecure File Upload via MIME/Extension Spoofing
+  
+  ## Objective:
+  Demonstrate that the server accepts arbitrary executable/HTML scripts disguised as a PDF.
+  
+  ## How to use:
+  1. Ensure you ran "01. Login as Admin" first so `{{token}}` is populated.
+  2. Click Send.
+  3. Notice that the server returns HTTP 201 Created and saves the file to `/uploads/pdf/`.
+  4. Capture a screenshot for your BEFORE evidence!
+}

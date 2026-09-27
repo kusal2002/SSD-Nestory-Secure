@@ -1,0 +1,32 @@
+meta {
+  name: 01. BEFORE - Search Regex Syntax Crash (500 Error)
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:5050/api/stories?search=([a-z]+
+  body: none
+  auth: bearer
+}
+
+params:query {
+  search: ([a-z]+
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  # VULN-02: Regular Expression Query Injection & Syntax Crash
+  
+  ## Objective:
+  Demonstrate that unescaped regex characters passed in the `search` query parameter cause an unhandled MongoDB/V8 regex compilation error, resulting in an internal server crash (HTTP 500).
+  
+  ## How to test:
+  1. Ensure you have logged in and `{{token}}` is populated.
+  2. Send the request.
+  3. Observe the HTTP 500 Internal Server Error leaking `SyntaxError: Invalid regular expression`.
+  4. Capture a screenshot for your BEFORE evidence!
+}

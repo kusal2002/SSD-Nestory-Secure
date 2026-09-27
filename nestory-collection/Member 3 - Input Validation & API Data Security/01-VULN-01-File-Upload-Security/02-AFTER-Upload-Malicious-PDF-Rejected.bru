@@ -1,0 +1,43 @@
+meta {
+  name: 02. AFTER - Upload Malicious Script (Rejected 400)
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:5050/api/stories
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:multipart-form {
+  title: Injected Exploit Story
+  author: Exploit Author
+  description: Testing secure upload rejection
+  ageGroup: middle-grade
+  readingLevel: beginner
+  genres: ["adventure"]
+  pdf: @file(payloads/malicious_doc.pdf) @contentType(application/pdf)
+}
+
+vars:pre-request {
+  base_url: http://localhost:5050
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhYjc3YjdkNTU0NzM2MWU2NGQwMjQxOSIsImlhdCI6MTc5MDQ5MzE4NSwiZXhwIjoxNzkzMDg1MTg1fQ.sSJGPKrMWnE4UEes9w7BaFmEY86WxRLHyeN9Dpv593M
+}
+
+docs {
+  # VULN-01 Remediation Verification
+  
+  ## Objective:
+  Verify that the fixed server detects invalid magic bytes and rejects non-PDF files with HTTP 400 Bad Request.
+  
+  ## Expected Result:
+  HTTP 400 Bad Request:
+  "Error: Invalid file signature. Only genuine PDF documents are allowed."
+  
+  Capture a screenshot for your AFTER evidence!
+}
