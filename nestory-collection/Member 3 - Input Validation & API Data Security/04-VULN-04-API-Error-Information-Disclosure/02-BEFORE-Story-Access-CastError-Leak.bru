@@ -1,0 +1,25 @@
+meta {
+  name: 02. BEFORE - Story Access CastError Leak
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:5050/api/stories/not-a-valid-id/access/not-a-valid-child-id
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhYjc3YjdkNTU0NzM2MWU2NGQwMjQxOSIsImlhdCI6MTc5MDQ5MzE4NSwiZXhwIjoxNzkzMDg1MTg1fQ.sSJGPKrMWnE4UEes9w7BaFmEY86WxRLHyeN9Dpv593M
+}
+
+docs {
+  # VULN-04: Story Access Information Disclosure
+  
+  ## Objective:
+  Demonstrate database error leakage on story access check endpoint.
+  
+  ## Expected Result:
+  HTTP 500 error leaking internal Mongoose CastError details.
+}

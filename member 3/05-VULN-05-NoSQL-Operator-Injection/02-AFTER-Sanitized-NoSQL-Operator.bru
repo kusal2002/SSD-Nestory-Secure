@@ -1,0 +1,31 @@
+meta {
+  name: 02. AFTER - Rejected or Sanitized NoSQL Operator Query
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:5050/api/stories?source[$ne]=internal
+  body: none
+  auth: bearer
+}
+
+params:query {
+  source[$ne]: internal
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhYjc3YjdkNTU0NzM2MWU2NGQwMjQxOSIsImlhdCI6MTc5MDQ5MzE4NSwiZXhwIjoxNzkzMDg1MTg1fQ.sSJGPKrMWnE4UEes9w7BaFmEY86WxRLHyeN9Dpv593M
+}
+
+docs {
+  # VULN-05 Remediation Verification
+  
+  ## Objective:
+  Verify that query filter parameters are strictly validated against an allow-list of strings and type-checked, preventing nested objects and NoSQL operators from reaching MongoDB.
+  
+  ## Expected Result:
+  The injected operator object is ignored or rejected, returning standard unfiltered/validated results safely without executing `$ne`.
+  
+  Capture a screenshot for your AFTER evidence!
+}

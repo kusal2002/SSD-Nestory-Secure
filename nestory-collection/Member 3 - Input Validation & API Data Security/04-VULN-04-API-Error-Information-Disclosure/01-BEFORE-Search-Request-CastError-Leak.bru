@@ -1,0 +1,29 @@
+meta {
+  name: 01. BEFORE - Database CastError Disclosure
+  type: http
+  seq: 1
+}
+
+put {
+  url: http://localhost:5050/api/search-requests/invalid-object-id-123/reviewing
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhYjc3YjdkNTU0NzM2MWU2NGQwMjQxOSIsImlhdCI6MTc5MDQ5MzE4NSwiZXhwIjoxNzkzMDg1MTg1fQ.sSJGPKrMWnE4UEes9w7BaFmEY86WxRLHyeN9Dpv593M
+}
+
+docs {
+  # VULN-04: Sensitive Database Schema & CastError Disclosure
+  
+  ## Objective:
+  Demonstrate that unhandled database errors leak raw Mongoose model names, field paths, and internal query syntax to the client.
+  
+  ## How to test:
+  1. Ensure you have logged in as Admin (`{{token}}` is populated).
+  2. Send the request with a non-ObjectId string (`invalid-object-id-123`).
+  3. Notice that the server responds with HTTP 500 leaking:
+     "Cast to ObjectId failed for value \"invalid-object-id-123\" (type string) at path \"_id\" for model \"SearchRequest\""
+  4. Capture a screenshot for your BEFORE evidence!
+}

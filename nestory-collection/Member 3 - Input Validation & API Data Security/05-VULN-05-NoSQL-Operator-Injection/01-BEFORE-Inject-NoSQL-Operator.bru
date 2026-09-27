@@ -1,0 +1,32 @@
+meta {
+  name: 01. BEFORE - Inject NoSQL Operator in Filter
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:5050/api/stories?source[$ne]=internal
+  body: none
+  auth: bearer
+}
+
+params:query {
+  source[$ne]: internal
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhYjc3YjdkNTU0NzM2MWU2NGQwMjQxOSIsImlhdCI6MTc5MDQ5MzE4NSwiZXhwIjoxNzkzMDg1MTg1fQ.sSJGPKrMWnE4UEes9w7BaFmEY86WxRLHyeN9Dpv593M
+}
+
+docs {
+  # VULN-05: NoSQL Query Operator Injection
+  
+  ## Objective:
+  Demonstrate that Express and MongoDB accept nested objects in query parameters (e.g. `source[$ne]=internal`), allowing an attacker to inject MongoDB comparison operators and manipulate database query logic.
+  
+  ## How to test:
+  1. Ensure you have logged in as Admin (`{{token}}` is populated).
+  2. Send the request.
+  3. Notice that MongoDB executes the `$ne` operator directly, filtering out internal stories.
+  4. Capture a screenshot for your BEFORE evidence!
+}

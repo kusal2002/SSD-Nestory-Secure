@@ -5,6 +5,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 const helmet = require("helmet");
 const express = require("express");
+const path = require("path");
 const cors = require("cors");
 const corsOptions = require("./config/corsOptions");
 const requestLogger = require("./middleware/requestLogger");
@@ -35,7 +36,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
 
 // Serve static files for uploads (must be before API routes)
-app.use('/api/uploads', express.static('backend/uploads'));
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/stories", require("./routes/storyLibrary/storyRoutes"));

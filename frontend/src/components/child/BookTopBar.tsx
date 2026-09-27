@@ -5,17 +5,17 @@ import { useNotifications } from '../../hooks/useNotifications';
 import { formatDistanceToNow } from 'date-fns';
 
 interface BookTopBarProps {
-  searchQuery: string;
-  setSearchQuery: (val: string) => void;
-  onSearch: () => void;
+  searchQuery?: string;
+  setSearchQuery?: (val: string) => void;
+  onSearch?: () => void;
   isLoading?: boolean;
 }
 
 const BookTopBar: React.FC<BookTopBarProps> = ({ 
-  searchQuery, 
-  setSearchQuery, 
-  onSearch,
-  isLoading 
+  searchQuery = '', 
+  setSearchQuery = () => {}, 
+  onSearch = () => {},
+  isLoading = false 
 }) => {
   const { user } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
