@@ -24,8 +24,10 @@ const {
   forgotPasswordValidation,
   resetPasswordValidation,
 } = require("../validators/authValidator");
-const { startOidcLogin } = require("../controllers/oidcController");
-
+const {
+  startOidcLogin,
+  handleOidcCallback,
+} = require("../controllers/oidcController");
 
 // Authentication rate limiting
 const { authLimiter } = require("../middleware/rateLimitMiddleware");
@@ -46,6 +48,7 @@ router.post(
   resetPassword
 );
 router.get("/oidc/login", startOidcLogin);
+router.get("/oidc/callback", handleOidcCallback);
 
 // Protected routes
 router.get("/me", protect, getMe);
