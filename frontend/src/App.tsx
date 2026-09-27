@@ -37,6 +37,7 @@ import ReadingPage from './pages/child/ReadingPage';
 import ChildProgressPage from './pages/child/ProgressPage';
 import ChildSettingsPage from './pages/child/SettingsPage';
 import FamilyChatPage from './pages/chat/FamilyChatPage';
+import OidcCallbackPage from "./pages/OidcCallbackPage";
 
 // Loading component
 const LoadingScreen: React.FC = () => (
@@ -134,6 +135,10 @@ const AppContent: React.FC = () => {
             ? <Navigate to={getDefaultRoute()} replace />
             : <ResetPasswordPage />
         }
+      />
+      <Route
+        path="/auth/oidc/callback"
+        element={<OidcCallbackPage />}
       />
 
       {/* Authenticated routes based on role */}

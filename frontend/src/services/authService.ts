@@ -80,6 +80,20 @@ class AuthService {
     };
   }
 
+  async exchangeOidcCode(code: string): Promise<AuthResponse> {
+    const response = await apiClient.getInstance().post<ApiResponse<BackendAuthPayload>>(
+      '/auth/oidc/exchange',
+      { code }
+    );
+
+    const payload = response.data.data!;
+
+    return {
+      user: this.normalizeUser(payload),
+      token: payload.token || '',
+    };
+  }
+
   async getCurrentUser(): Promise<User> {
     const response = await apiClient.getInstance().get<ApiResponse<BackendAuthPayload>>(
       '/auth/me'

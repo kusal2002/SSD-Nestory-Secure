@@ -1,6 +1,10 @@
 const oidcConfig = require("../config/oidcConfig");
 const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
+const {
+  createOidcLoginHandoff,
+  consumeOidcLoginHandoff,
+} = require("../services/oidcLoginHandoffStore");
 
 const OIDC_TRANSACTION_COOKIE = "nestory_oidc_transaction";
 const {
@@ -117,6 +121,50 @@ const handleOidcCallback = async (req, res, next) => {
       });
     }
 
+    const handoffCode = createOidcLoginHandoff(user._id);
+
+    const frontendCallbackUrl = new URL(
+      "/auth/oidc/callback",
+      oidcConfig.frontendUrl
+    );
+
+    frontendCallbackUrl.searchParams.set("code", handoffCode);
+
+    return res.redirect(frontendCallbackUrl.toString());
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const exchangeOidcLoginHandoff = async (req, res, next) => {
+  try {
+    const { code } = req.body;
+
+    if (!code || typeof code !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "OIDC login code is required",
+      });
+    }
+
+    const handoff = consumeOidcLoginHandoff(code);
+
+    if (!handoff) {
+      return res.status(401).json({
+        success: false,
+        message: "OIDC login code is invalid or expired",
+      });
+    }
+
+    const user = await User.findById(handoff.userId);
+
+    if (!user || !user.isActive || user.authProvider !== "wso2") {
+      return res.status(401).json({
+        success: false,
+        message: "OIDC login could not be completed",
+      });
+    }
+
     return res.status(200).json({
       success: true,
       message: "WSO2 login successful",
@@ -190,4 +238,5 @@ const startOidcLogin = async (req, res, next) => {
 module.exports = {
   startOidcLogin,
   handleOidcCallback,
+  exchangeOidcLoginHandoff,
 };

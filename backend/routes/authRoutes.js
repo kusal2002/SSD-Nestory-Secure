@@ -27,6 +27,7 @@ const {
 const {
   startOidcLogin,
   handleOidcCallback,
+  exchangeOidcLoginHandoff,
 } = require("../controllers/oidcController");
 
 // Authentication rate limiting
@@ -49,6 +50,7 @@ router.post(
 );
 router.get("/oidc/login", startOidcLogin);
 router.get("/oidc/callback", handleOidcCallback);
+router.post("/oidc/exchange", exchangeOidcLoginHandoff);
 
 // Protected routes
 router.get("/me", protect, getMe);
