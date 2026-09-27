@@ -22,7 +22,9 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, "Please provide a password"],
+      required: function () {
+        return this.authProvider !== "wso2";
+      },
       minlength: [6, "Password must be at least 6 characters"],
       select: false,
     },
@@ -91,8 +93,8 @@ userSchema.index(
 
 // Hash password before saving
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) {
-    next();
+  if (!this.isModified("password") || !this.password) {
+    return next();
   }
 
   const salt = await bcrypt.genSalt(10);
