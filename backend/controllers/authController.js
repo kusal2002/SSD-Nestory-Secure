@@ -190,17 +190,35 @@ exports.getMe = async (req, res) => {
 // @access  Private
 exports.updateProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    // Passwords may only change through /change-password, which verifies the
+    // current password; a bearer token alone must not be enough.
+    if (req.body.password !== undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Password cannot be changed here. Use the change password option",
+      });
+    }
+
+    const user = await User.findById(req.user._id).select("+password");
 
     if (user) {
+      // Changing the login email is an account-takeover step, so it also
+      // requires the current password.
+      const newEmail = req.body.email ? String(req.body.email).toLowerCase() : null;
+      if (newEmail && newEmail !== user.email) {
+        const { currentPassword } = req.body;
+        if (!currentPassword || !(await user.matchPassword(currentPassword))) {
+          return res.status(401).json({
+            success: false,
+            message: "Current password is required to change email",
+          });
+        }
+        user.email = newEmail;
+      }
+
       user.name = req.body.name || user.name;
-      user.email = req.body.email || user.email;
       user.phoneNumber = req.body.phoneNumber || user.phoneNumber;
       user.profilePicture = req.body.profilePicture || user.profilePicture;
-
-      if (req.body.password) {
-        user.password = req.body.password;
-      }
 
       const updatedUser = await user.save();
 
