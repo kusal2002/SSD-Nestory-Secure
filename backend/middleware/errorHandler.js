@@ -1,4 +1,4 @@
-const ErrorResponse = require('../utils/errorResponse');
+const ErrorResponse = require("../utils/errorResponse");
 
 const errorHandler = (err, req, res, next) => {
   let error = { ...err };
@@ -7,33 +7,32 @@ const errorHandler = (err, req, res, next) => {
   // Log to server console for server-side monitoring
   console.error('[SERVER ERROR]', err);
 
-  // Mongoose invalid ObjectId (CastError)
-  if (err.name === 'CastError') {
-    const message = 'Invalid resource ID or resource not found';
-    error = new ErrorResponse(message, 400);
+  // Mongoose bad ObjectId
+  if (err.name === "CastError") {
+    const message = "Resource not found";
+    error = new ErrorResponse(message, 404);
   }
 
   // Mongoose duplicate key error
   if (err.code === 11000) {
-    const message = 'Duplicate field value entered';
+    const message = "Duplicate field value entered";
     error = new ErrorResponse(message, 400);
   }
 
   // Mongoose validation error
-  if (err.name === 'ValidationError') {
-    const message = Object.values(err.errors).map(val => val.message).join(', ');
+  if (err.name === "ValidationError") {
+    const message = Object.values(err.errors).map((val) => val.message);
     error = new ErrorResponse(message, 400);
   }
 
-  // Determine safe status code and sanitized client message
-  const statusCode = error.statusCode || (err.statusCode || 500);
-  const clientMessage = statusCode === 500
-    ? 'An unexpected error occurred on the server. Please try again later.'
-    : (error.message || 'Invalid request');
+  const statusCode = error.statusCode || 500;
 
   res.status(statusCode).json({
     success: false,
-    message: clientMessage
+    message:
+      statusCode === 500
+        ? "Internal Server Error"
+        : error.message || "Request failed",
   });
 };
 
