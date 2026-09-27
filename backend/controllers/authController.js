@@ -328,11 +328,13 @@ exports.changePassword = async (req, res) => {
     user.mustChangePassword = false;
     await user.save();
 
+    // Older tokens are now rejected, so give this session a fresh one
     res.status(200).json({
       success: true,
       message: "Password changed successfully",
       data: {
         mustChangePassword: false,
+        token: generateToken(user._id),
       },
     });
   } catch (error) {

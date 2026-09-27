@@ -96,10 +96,15 @@ class AuthService {
   }
 
   async changePassword(data: { currentPassword: string; newPassword: string }): Promise<void> {
-    await apiClient.getInstance().put<ApiResponse<{ mustChangePassword: boolean }>>(
-      '/auth/change-password',
-      data
-    );
+    const response = await apiClient.getInstance().put<
+      ApiResponse<{ mustChangePassword: boolean; token?: string }>
+    >('/auth/change-password', data);
+
+    // The old token is invalidated by the password change; switch to the new one
+    const newToken = response.data.data?.token;
+    if (newToken) {
+      apiClient.setToken(newToken);
+    }
   }
 
   async forgotPassword(email: string): Promise<void> {

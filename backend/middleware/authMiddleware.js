@@ -38,6 +38,13 @@ exports.protect = async (req, res, next) => {
         });
       }
 
+      if (req.user.changedPasswordAfter(decoded.iat)) {
+        return res.status(401).json({
+          success: false,
+          message: "Password was changed. Please log in again",
+        });
+      }
+
       req.user.normalizedRole = normalizeRole(req.user.role);
 
       next();
