@@ -2,6 +2,19 @@ const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
 const crypto = require("crypto");
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+
+// Compared against when no user matches, so login takes the same time
+// whether or not the email is registered.
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync("nestory-dummy-password", 10);
+
+// Same response for known and unknown emails, so forgot-password
+// cannot be used to discover registered accounts.
+const FORGOT_PASSWORD_RESPONSE = {
+  success: true,
+  message:
+    "If an account exists for this email, password reset instructions have been sent.",
+};
 
 // @desc    Register new user
 // @route   POST /api/auth/register
@@ -86,6 +99,17 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
+      await bcrypt.compare(String(password), DUMMY_PASSWORD_HASH);
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials",
+      });
+    }
+
+    // Check password before revealing anything about the account's state
+    const isPasswordMatch = await user.matchPassword(password);
+
+    if (!isPasswordMatch) {
       return res.status(401).json({
         success: false,
         message: "Invalid credentials",
@@ -97,16 +121,6 @@ exports.login = async (req, res) => {
       return res.status(401).json({
         success: false,
         message: "Account has been deactivated",
-      });
-    }
-
-    // Check password
-    const isPasswordMatch = await user.matchPassword(password);
-
-    if (!isPasswordMatch) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid credentials",
       });
     }
 
@@ -176,17 +190,35 @@ exports.getMe = async (req, res) => {
 // @access  Private
 exports.updateProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    // Passwords may only change through /change-password, which verifies the
+    // current password; a bearer token alone must not be enough.
+    if (req.body.password !== undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Password cannot be changed here. Use the change password option",
+      });
+    }
+
+    const user = await User.findById(req.user._id).select("+password");
 
     if (user) {
+      // Changing the login email is an account-takeover step, so it also
+      // requires the current password.
+      const newEmail = req.body.email ? String(req.body.email).toLowerCase() : null;
+      if (newEmail && newEmail !== user.email) {
+        const { currentPassword } = req.body;
+        if (!currentPassword || !(await user.matchPassword(currentPassword))) {
+          return res.status(401).json({
+            success: false,
+            message: "Current password is required to change email",
+          });
+        }
+        user.email = newEmail;
+      }
+
       user.name = req.body.name || user.name;
-      user.email = req.body.email || user.email;
       user.phoneNumber = req.body.phoneNumber || user.phoneNumber;
       user.profilePicture = req.body.profilePicture || user.profilePicture;
-
-      if (req.body.password) {
-        user.password = req.body.password;
-      }
 
       const updatedUser = await user.save();
 
@@ -314,11 +346,13 @@ exports.changePassword = async (req, res) => {
     user.mustChangePassword = false;
     await user.save();
 
+    // Older tokens are now rejected, so give this session a fresh one
     res.status(200).json({
       success: true,
       message: "Password changed successfully",
       data: {
         mustChangePassword: false,
+        token: generateToken(user._id),
       },
     });
   } catch (error) {
@@ -348,10 +382,7 @@ exports.forgotPassword = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "No user found with this email address",
-      });
+      return res.status(200).json(FORGOT_PASSWORD_RESPONSE);
     }
 
     // Generate reset token
@@ -368,16 +399,15 @@ exports.forgotPassword = async (req, res) => {
 
     await user.save();
 
-    // In a real application, you would send this token via email
-    // For now, we return it in the response (development only)
-    res.status(200).json({
-      success: true,
-      message: "Password reset token generated. Check your email for instructions.",
-      data: {
-        resetToken, // Only for development/testing - in production, send via email
-        expiresIn: "1 hour",
-      },
-    });
+    // Deliver the reset link out-of-band only (never in the API response).
+    // No email service is configured, so outside production the link is
+    // written to the server console to simulate email delivery.
+    const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/reset-password?token=${resetToken}`;
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`[Password reset] Link for ${user.email}: ${resetUrl}`);
+    }
+
+    res.status(200).json(FORGOT_PASSWORD_RESPONSE);
   } catch (error) {
     console.error(error);
     res.status(500).json({

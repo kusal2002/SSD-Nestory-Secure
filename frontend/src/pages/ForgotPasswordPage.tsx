@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Mail, ArrowLeft, Copy, Check, BookOpen, Sparkles, Heart } from 'lucide-react';
+import { Mail, ArrowLeft, BookOpen, Sparkles, Heart } from 'lucide-react';
 import authService from '../services/authService';
 
 const ForgotPasswordPage: React.FC = () => {
@@ -9,8 +9,7 @@ const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [resetToken, setResetToken] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   const validateEmail = () => {
     setError('');
@@ -32,24 +31,15 @@ const ForgotPasswordPage: React.FC = () => {
 
     try {
       setIsLoading(true);
-      const result = await authService.forgotPassword(email);
-      setResetToken(result.resetToken);
-      toast.success('Password reset token generated!');
+      await authService.forgotPassword(email);
+      setSubmitted(true);
+      toast.success('Check your email for a reset link');
     } catch (error: any) {
-      const errorMessage = error?.response?.data?.message || 'Failed to generate reset token';
+      const errorMessage = error?.response?.data?.message || 'Failed to request password reset';
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleCopyToken = () => {
-    if (resetToken) {
-      navigator.clipboard.writeText(resetToken);
-      setCopied(true);
-      toast.success('Token copied to clipboard!');
-      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -106,58 +96,22 @@ const ForgotPasswordPage: React.FC = () => {
 
         {/* Right Side: Content */}
         <div className="w-full md:w-1/2 p-12 flex flex-col justify-center bg-white relative">
-          {resetToken ? (
+          {submitted ? (
             <div className="space-y-6 max-w-[360px] mx-auto w-full animate-fade-in text-left">
               <div className="space-y-1">
-                <h2 className="text-3xl font-black text-gray-800 uppercase tracking-tight">Token Ready!</h2>
+                <h2 className="text-3xl font-black text-gray-800 uppercase tracking-tight">Check Your Email</h2>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                  Use this to unlock your account
+                  If an account exists for {email}, we sent a password reset link. It expires in 1 hour.
                 </p>
-              </div>
-
-              <div className="bg-[#F5F1E9]/30 border-2 border-[#E8E2D5] rounded-[2rem] p-6 shadow-inner space-y-4">
-                <div className="flex items-center justify-between">
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                    <Check size={12} className="text-green-500" />
-                    Reset Token
-                  </label>
-                  <button
-                    onClick={handleCopyToken}
-                    className="p-2 hover:bg-rose-50 rounded-xl transition-colors text-rose-500"
-                    title="Copy token"
-                  >
-                    {copied ? <Check size={18} /> : <Copy size={18} />}
-                  </button>
-                </div>
-                
-                <div className="bg-white border-2 border-[#E8E2D5] rounded-xl p-4 font-mono text-xs text-gray-600 break-all select-all">
-                  {resetToken}
-                </div>
-
-                <div className="p-3 bg-green-50 rounded-xl border border-green-100">
-                  <p className="text-[10px] font-black text-green-700 uppercase tracking-wider text-center">
-                    Copied! Now head to the reset page.
-                  </p>
-                </div>
               </div>
 
               <div className="space-y-3">
                 <Link
-                  to={`/reset-password?token=${resetToken}`}
+                  to="/login"
                   className="w-full bg-rose-500 text-white rounded-[1.5rem] py-4 font-black uppercase text-xs tracking-[0.2em] border-b-4 border-rose-700 active:border-b-0 active:translate-y-1 transition-all flex items-center justify-center gap-3 shadow-[0_4px_0_rgb(190,18,60)]"
                 >
-                  Go to Reset Page
+                  Back to Login
                 </Link>
-
-                <button
-                  onClick={() => {
-                    setResetToken(null);
-                    setEmail('');
-                  }}
-                  className="w-full bg-white text-gray-500 rounded-[1.5rem] py-4 font-black uppercase text-xs tracking-[0.2em] border-2 border-[#E8E2D5] hover:bg-gray-50 transition-all flex items-center justify-center gap-3"
-                >
-                  Start Over
-                </button>
               </div>
             </div>
           ) : (
@@ -205,7 +159,7 @@ const ForgotPasswordPage: React.FC = () => {
                 ) : (
                   <>
                     <ArrowLeft size={18} className="rotate-180" />
-                    Get Reset Token
+                    Send Reset Link
                   </>
                 )}
               </button>
