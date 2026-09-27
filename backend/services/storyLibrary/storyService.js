@@ -51,21 +51,26 @@ exports.listStories = async (query, user) => {
         }
     }
 
-    const skip = (Number(page) - 1) * Number(limit);
+    // Enforce strict pagination bounds (min: 1, default: 10, max: 50)
+    const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
+    const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 50);
+
+    const skip = (parsedPage - 1) * parsedLimit;
 
     const [stories, total] = await Promise.all([
         Story.find(filter)
             .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(Number(limit)),
+            .limit(parsedLimit),
         Story.countDocuments(filter)
     ]);
 
     return {
         stories,
         total,
-        page: Number(page),
-        pages: Math.ceil(total / Number(limit))
+        page: parsedPage,
+        limit: parsedLimit,
+        pages: Math.ceil(total / parsedLimit)
     };
 };
 
@@ -167,7 +172,7 @@ exports.filterByReadingLevel = (stories, level) => {
 exports.filterByAgeGroup = (stories, ageGroup) => {
     if (!Array.isArray(stories)) return [];
     if (!ageGroup) return stories;
-    return stories.filter(story => 
+    return stories.filter(story =>
         story.ageGroup && (story.ageGroup.includes(ageGroup) || Array.isArray(story.ageGroup) && story.ageGroup.includes(ageGroup))
     );
 };
@@ -178,7 +183,7 @@ exports.filterByAgeGroup = (stories, ageGroup) => {
 exports.filterByGenre = (stories, genre) => {
     if (!Array.isArray(stories)) return [];
     if (!genre) return stories;
-    return stories.filter(story => 
+    return stories.filter(story =>
         Array.isArray(story.genres) && story.genres.includes(genre)
     );
 };
