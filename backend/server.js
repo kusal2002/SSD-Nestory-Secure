@@ -1,6 +1,6 @@
 const express = require("express");
 const dotenv = require("dotenv");
-
+const helmet = require("helmet");
 
 // Load environment variables
 dotenv.config();
@@ -13,16 +13,15 @@ const errorHandler = require("./middleware/errorHandler");
 const { initSocketServer } = require("./realtime/socketServer");
 const path = require("path");
 
-
-
 // Initialize Express app
 const app = express();
 const server = http.createServer(app);
 
 // Connect to Database
 connectDB();
-
+app.disable("x-powered-by");
 // Middleware
+app.use(helmet());
 app.use(cors(corsOptions));
 
 app.use(express.json());
