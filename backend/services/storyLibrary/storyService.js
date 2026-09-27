@@ -25,18 +25,35 @@ exports.listStories = async (query, user) => {
 
         if (child) {
             filter.ageGroup = mapAgeToGroup(child.age);
-        } else if (ageGroup) {
-            filter.ageGroup = ageGroup;
+        } else if (ageGroup && typeof ageGroup === 'string') {
+            filter.ageGroup = ageGroup.trim();
         }
     } else if (user && user.ageGroup) {
         filter.ageGroup = user.ageGroup;
-    } else if (ageGroup) {
-        filter.ageGroup = ageGroup;
+    } else if (ageGroup && typeof ageGroup === 'string') {
+        filter.ageGroup = ageGroup.trim();
     }
 
-    if (readingLevel) filter.readingLevel = readingLevel;
-    if (source) filter.source = source;
-    if (genre) filter.genres = { $in: [genre] };
+    // Whitelist and type-check readingLevel to prevent NoSQL operator injection
+    if (readingLevel && typeof readingLevel === 'string') {
+        const allowedLevels = ['beginner', 'intermediate', 'advanced'];
+        if (allowedLevels.includes(readingLevel.trim().toLowerCase())) {
+            filter.readingLevel = readingLevel.trim().toLowerCase();
+        }
+    }
+
+    // Whitelist and type-check source to prevent NoSQL operator injection (e.g. source[$ne]=internal)
+    if (source && typeof source === 'string') {
+        const allowedSources = ['internal', 'google'];
+        if (allowedSources.includes(source.trim().toLowerCase())) {
+            filter.source = source.trim().toLowerCase();
+        }
+    }
+
+    // Type-check genre to ensure only primitive string is passed
+    if (genre && typeof genre === 'string' && genre.trim().length > 0) {
+        filter.genres = { $in: [genre.trim()] };
+    }
 
     if (search && typeof search === 'string') {
         // Enforce maximum length of 100 characters and escape regex special characters
