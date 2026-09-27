@@ -10,6 +10,7 @@ const cors = require("cors");
 const corsOptions = require("./config/corsOptions");
 const requestLogger = require("./middleware/requestLogger");
 const errorHandler = require("./middleware/errorHandler");
+const cookieParser = require("cookie-parser");
 
 const app = express();
 app.disable("x-powered-by");
@@ -33,6 +34,7 @@ app.use((error, req, res, next) => {
 });
 
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 app.use(requestLogger);
 
 // Serve static files for uploads (must be before API routes)

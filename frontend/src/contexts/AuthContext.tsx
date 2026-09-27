@@ -8,6 +8,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (data: LoginRequest) => Promise<void>;
+  completeOidcLogin: (code: string) => Promise<User>;
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => void;
   updateUserProfile: (data: Partial<User>) => Promise<void>;
@@ -111,6 +112,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const completeOidcLogin = async (code: string): Promise<User> => {
+    const response = await authService.exchangeOidcCode(code);
+
+    authService.setToken(response.token, response.user);
+
+    const currentUser = await authService.getCurrentUser();
+
+    setToken(response.token);
+    setUser(currentUser);
+
+    localStorage.setItem('user', JSON.stringify(currentUser));
+
+    return currentUser;
+  };
+
   const register = async (data: RegisterRequest) => {
     setIsLoading(true);
     try {
@@ -172,6 +188,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     updateUserProfile,
     changePassword,
+    completeOidcLogin,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

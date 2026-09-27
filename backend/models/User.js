@@ -22,9 +22,24 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, "Please provide a password"],
+      required: function () {
+        return this.authProvider !== "wso2";
+      },
       minlength: [6, "Password must be at least 6 characters"],
       select: false,
+    },
+    authProvider: {
+      type: String,
+      enum: ["local", "wso2"],
+      default: "local",
+    },
+    oidcIssuer: {
+      type: String,
+      default: null,
+    },
+    oidcSubject: {
+      type: String,
+      default: null,
     },
     role: {
       type: String,
@@ -66,9 +81,20 @@ const userSchema = new mongoose.Schema(
   },
 );
 
+userSchema.index(
+  { oidcIssuer: 1, oidcSubject: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      oidcIssuer: { $type: "string" },
+      oidcSubject: { $type: "string" },
+    },
+  }
+);
+
 // Hash password before saving
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) {
+  if (!this.isModified("password") || !this.password) {
     return next();
   }
 
