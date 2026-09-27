@@ -1,6 +1,31 @@
+const mongoose = require('mongoose');
 const successResponse = require('../../utils/responseFormatter');
 const { searchGoogleBooks } = require('../../services/storyLibrary/googleBooksService');
 const storyService = require('../../services/storyLibrary/storyService');
+
+// Permitted fields allow-list to prevent Mass Assignment vulnerabilities (CWE-915)
+const ALLOWED_STORY_FIELDS = [
+    'title',
+    'author',
+    'description',
+    'ageGroup',
+    'genres',
+    'readingLevel',
+    'coverImage',
+    'previewLink',
+    'pageCount'
+];
+
+const sanitizeStoryPayload = (body) => {
+    const sanitized = {};
+    if (!body || typeof body !== 'object') return sanitized;
+    for (const field of ALLOWED_STORY_FIELDS) {
+        if (body[field] !== undefined) {
+            sanitized[field] = body[field];
+        }
+    }
+    return sanitized;
+};
 
 
 exports.searchExternalBooks = async (req, res, next) => {
@@ -52,14 +77,15 @@ exports.getStoryById = async (req, res, next) => {
 //POST /api/stories (admin)
 exports.createStory = async (req, res, next) => {
     try {
-        const payload = { ...req.body };
+        // Whitelist permitted fields to prevent Mass Assignment (CWE-915)
+        const payload = sanitizeStoryPayload(req.body);
         
         // Handle file upload
         if (req.file) {
-            // Store relative path that matches API route
             payload.pdfUrl = `/api/uploads/pdf/${req.file.filename}`;
         }
 
+        // createdBy is strictly enforced from req.user._id, preventing ownership spoofing
         const story = await storyService.createStory(payload, req.user._id);
         return successResponse(res, 201, 'Story created successfully', story);
     } catch (err) {
@@ -70,7 +96,13 @@ exports.createStory = async (req, res, next) => {
 //PUT /api/stories/:id (admin)
 exports.updateStory = async (req, res, next) => {
     try {
-        const payload = { ...req.body };
+        // Validate ObjectId format
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ success: false, message: 'Invalid story ID format' });
+        }
+
+        // Whitelist permitted fields to prevent Mass Assignment (CWE-915)
+        const payload = sanitizeStoryPayload(req.body);
         
         // Handle file upload
         if (req.file) {
@@ -89,6 +121,10 @@ exports.updateStory = async (req, res, next) => {
 //DELETE /api/stories/:id (admin)
 exports.deleteStory = async (req, res, next) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ success: false, message: 'Invalid story ID format' });
+        }
+
         const story = await storyService.deleteStory(req.params.id);
         if (!story) return res.status(404).json({ success:false, message: 'Story not found' });
 
