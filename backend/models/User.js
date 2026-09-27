@@ -26,6 +26,19 @@ const userSchema = new mongoose.Schema(
       minlength: [6, "Password must be at least 6 characters"],
       select: false,
     },
+    authProvider: {
+      type: String,
+      enum: ["local", "wso2"],
+      default: "local",
+    },
+    oidcIssuer: {
+      type: String,
+      default: null,
+    },
+    oidcSubject: {
+      type: String,
+      default: null,
+    },
     role: {
       type: String,
       enum: ["user", "admin", "child"],
@@ -63,6 +76,17 @@ const userSchema = new mongoose.Schema(
   {
     timestamps: true,
   },
+);
+
+userSchema.index(
+  { oidcIssuer: 1, oidcSubject: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      oidcIssuer: { $type: "string" },
+      oidcSubject: { $type: "string" },
+    },
+  }
 );
 
 // Hash password before saving
