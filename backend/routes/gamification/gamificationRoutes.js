@@ -27,15 +27,16 @@ const { protect } = require('../../middleware/authMiddleware');
 const { admin } = require('../../middleware/authMiddleware');
 const { authorizeGamificationTarget } = require("../../middleware/gamificationAuthorizationMiddleware");
 
-// Progress routes OLD 
+// Progress routes old 
 // router.get('/progress/:userId', protect, getUserProgress);
 //New
 router.get('/progress/:userId', protect, authorizeGamificationTarget, getUserProgress);
 
 // Points routes old 
 // router.post('/points/award', protect, awardPoints);
-//New
-router.post('/points/award', protect, authorizeGamificationTarget, awardPoints);
+//vul -1
+// router.post('/points/award', protect, authorizeGamificationTarget, awardPoints);
+router.post('/points/award', protect, admin, awardPoints);
 
 //old 
 // router.get('/transactions/:userId', protect, getTransactionHistory);
