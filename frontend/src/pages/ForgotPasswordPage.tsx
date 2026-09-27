@@ -101,7 +101,7 @@ const ForgotPasswordPage: React.FC = () => {
               <div className="space-y-1">
                 <h2 className="text-3xl font-black text-gray-800 uppercase tracking-tight">Check Your Email</h2>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                  We sent a password reset link to {email}. It expires in 1 hour.
+                  If an account exists for {email}, we sent a password reset link. It expires in 1 hour.
                 </p>
               </div>
 

@@ -2,6 +2,19 @@ const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
 const crypto = require("crypto");
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+
+// Compared against when no user matches, so login takes the same time
+// whether or not the email is registered.
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync("nestory-dummy-password", 10);
+
+// Same response for known and unknown emails, so forgot-password
+// cannot be used to discover registered accounts.
+const FORGOT_PASSWORD_RESPONSE = {
+  success: true,
+  message:
+    "If an account exists for this email, password reset instructions have been sent.",
+};
 
 // @desc    Register new user
 // @route   POST /api/auth/register
@@ -86,6 +99,17 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
+      await bcrypt.compare(String(password), DUMMY_PASSWORD_HASH);
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials",
+      });
+    }
+
+    // Check password before revealing anything about the account's state
+    const isPasswordMatch = await user.matchPassword(password);
+
+    if (!isPasswordMatch) {
       return res.status(401).json({
         success: false,
         message: "Invalid credentials",
@@ -97,16 +121,6 @@ exports.login = async (req, res) => {
       return res.status(401).json({
         success: false,
         message: "Account has been deactivated",
-      });
-    }
-
-    // Check password
-    const isPasswordMatch = await user.matchPassword(password);
-
-    if (!isPasswordMatch) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid credentials",
       });
     }
 
@@ -348,10 +362,7 @@ exports.forgotPassword = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "No user found with this email address",
-      });
+      return res.status(200).json(FORGOT_PASSWORD_RESPONSE);
     }
 
     // Generate reset token
@@ -376,10 +387,7 @@ exports.forgotPassword = async (req, res) => {
       console.log(`[Password reset] Link for ${user.email}: ${resetUrl}`);
     }
 
-    res.status(200).json({
-      success: true,
-      message: "Password reset instructions have been sent to your email.",
-    });
+    res.status(200).json(FORGOT_PASSWORD_RESPONSE);
   } catch (error) {
     console.error(error);
     res.status(500).json({
