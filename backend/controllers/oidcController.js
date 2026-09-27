@@ -1,4 +1,6 @@
 const oidcConfig = require("../config/oidcConfig");
+const User = require("../models/User");
+const generateToken = require("../utils/generateToken");
 
 const OIDC_TRANSACTION_COOKIE = "nestory_oidc_transaction";
 const {
@@ -67,16 +69,63 @@ const handleOidcCallback = async (req, res, next) => {
       });
     }
 
-    // Temporary response for callback testing only.
-    // Do not return WSO2 tokens to the browser.
+    const oidcName =
+      claims.name ||
+      [claims.given_name, claims.family_name].filter(Boolean).join(" ") ||
+      claims.username ||
+      null;
+
+    if (!claims.sub || !claims.iss || !claims.email || !oidcName) {
+      return res.status(400).json({
+        success: false,
+        message: "Required WSO2 identity claims are missing",
+      });
+    }
+
+    let user = await User.findOne({
+      authProvider: "wso2",
+      oidcIssuer: claims.iss,
+      oidcSubject: claims.sub,
+    });
+
+    if (!user) {
+      const existingEmailUser = await User.findOne({
+        email: claims.email.toLowerCase(),
+      });
+
+      if (existingEmailUser) {
+        return res.status(409).json({
+          success: false,
+          message:
+            "An account with this email already exists. Sign in using the original authentication method.",
+        });
+      }
+
+      user = await User.create({
+        name: oidcName,
+        email: claims.email,
+        authProvider: "wso2",
+        oidcIssuer: claims.iss,
+        oidcSubject: claims.sub,
+      });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: "Account is inactive",
+      });
+    }
+
     return res.status(200).json({
       success: true,
-      message: "WSO2 OIDC callback validated successfully",
-      identity: {
-        subject: claims.sub,
-        issuer: claims.iss,
-        email: claims.email || null,
-        name: claims.name || claims.preferred_username || null,
+      message: "WSO2 login successful",
+      data: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        token: generateToken(user._id),
       },
     });
   } catch (error) {
