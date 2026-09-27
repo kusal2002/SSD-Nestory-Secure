@@ -1,11 +1,19 @@
+// dotenv
+const dotenv = require("dotenv");
+
+// Load environment variables
+dotenv.config();
+const helmet = require("helmet");
 const express = require("express");
 const cors = require("cors");
+const corsOptions = require("./config/corsOptions");
 const requestLogger = require("./middleware/requestLogger");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
-
-app.use(cors());
+app.disable("x-powered-by");
+app.use(helmet());
+app.use(cors(corsOptions));
 
 // Add custom error handler for body-parser before json() middleware
 app.use(express.json());
