@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("path");
 const cors = require("cors");
 const requestLogger = require("./middleware/requestLogger");
 const errorHandler = require("./middleware/errorHandler");
@@ -27,7 +28,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
 
 // Serve static files for uploads (must be before API routes)
-app.use('/api/uploads', express.static('backend/uploads'));
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/stories", require("./routes/storyLibrary/storyRoutes"));
