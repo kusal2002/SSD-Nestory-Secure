@@ -102,12 +102,8 @@ class AuthService {
     );
   }
 
-  async forgotPassword(email: string): Promise<{ resetToken: string; expiresIn: string }> {
-    const response = await apiClient.getInstance().post<
-      ApiResponse<{ resetToken: string; expiresIn: string }>
-    >('/auth/forgot-password', { email });
-
-    return response.data.data!;
+  async forgotPassword(email: string): Promise<void> {
+    await apiClient.getInstance().post<ApiResponse<null>>('/auth/forgot-password', { email });
   }
 
   async resetPassword(token: string, newPassword: string): Promise<AuthResponse> {

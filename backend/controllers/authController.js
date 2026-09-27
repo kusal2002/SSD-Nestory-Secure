@@ -368,15 +368,17 @@ exports.forgotPassword = async (req, res) => {
 
     await user.save();
 
-    // In a real application, you would send this token via email
-    // For now, we return it in the response (development only)
+    // Deliver the reset link out-of-band only (never in the API response).
+    // No email service is configured, so outside production the link is
+    // written to the server console to simulate email delivery.
+    const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/reset-password?token=${resetToken}`;
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`[Password reset] Link for ${user.email}: ${resetUrl}`);
+    }
+
     res.status(200).json({
       success: true,
-      message: "Password reset token generated. Check your email for instructions.",
-      data: {
-        resetToken, // Only for development/testing - in production, send via email
-        expiresIn: "1 hour",
-      },
+      message: "Password reset instructions have been sent to your email.",
     });
   } catch (error) {
     console.error(error);
