@@ -25,9 +25,13 @@ const {
   resetPasswordValidation,
 } = require("../validators/authValidator");
 
+
+// Authentication rate limiting
+const { authLimiter } = require("../middleware/rateLimitMiddleware");
+
 // Public routes
 router.post("/register", registerValidation, handleValidationErrors, register);
-router.post("/login", loginValidation, handleValidationErrors, login);
+router.post("/login", authLimiter, loginValidation, handleValidationErrors, login);
 router.post(
   "/forgot-password",
   forgotPasswordValidation,
