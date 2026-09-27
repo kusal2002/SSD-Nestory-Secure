@@ -1,6 +1,11 @@
 const express = require("express");
 const dotenv = require("dotenv");
+const helmet = require("helmet");
+
+// Load environment variables
+dotenv.config();
 const cors = require("cors");
+const corsOptions = require("./config/corsOptions");
 const http = require("http");
 const connectDB = require("./config/db");
 const requestLogger = require("./middleware/requestLogger");
@@ -8,18 +13,17 @@ const errorHandler = require("./middleware/errorHandler");
 const { initSocketServer } = require("./realtime/socketServer");
 const path = require("path");
 
-// Load environment variables
-dotenv.config();
-
 // Initialize Express app
 const app = express();
 const server = http.createServer(app);
 
 // Connect to Database
 connectDB();
-
+app.disable("x-powered-by");
 // Middleware
-app.use(cors());
+app.use(helmet());
+app.use(cors(corsOptions));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
