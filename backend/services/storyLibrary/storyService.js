@@ -9,6 +9,12 @@ const mapAgeToGroup = (age) => {
     return 'young-adult';
 };
 
+// Helper function to safely escape regex metacharacters
+const escapeRegex = (string) => {
+    if (typeof string !== 'string') return '';
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
 exports.listStories = async (query, user) => {
     const { page = 1, limit = 10, search, ageGroup, genre, readingLevel, source } = query;
 
@@ -32,12 +38,17 @@ exports.listStories = async (query, user) => {
     if (source) filter.source = source;
     if (genre) filter.genres = { $in: [genre] };
 
-    if (search) {
-        filter.$or = [
-            { title: { $regex: search, $options: 'i' } },
-            { author: { $regex: search, $options: 'i' } },
-            { description: { $regex: search, $options: 'i' } }
-        ];
+    if (search && typeof search === 'string') {
+        // Enforce maximum length of 100 characters and escape regex special characters
+        const trimmedSearch = search.trim().slice(0, 100);
+        if (trimmedSearch.length > 0) {
+            const sanitizedSearch = escapeRegex(trimmedSearch);
+            filter.$or = [
+                { title: { $regex: sanitizedSearch, $options: 'i' } },
+                { author: { $regex: sanitizedSearch, $options: 'i' } },
+                { description: { $regex: sanitizedSearch, $options: 'i' } }
+            ];
+        }
     }
 
     const skip = (Number(page) - 1) * Number(limit);
