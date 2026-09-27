@@ -1,0 +1,28 @@
+meta {
+  name: 03. AFTER - Sanitized Error Without Schema Leaks
+  type: http
+  seq: 3
+}
+
+put {
+  url: http://localhost:5050/api/search-requests/invalid-object-id-123/reviewing
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhYjc3YjdkNTU0NzM2MWU2NGQwMjQxOSIsImlhdCI6MTc5MDQ5MzE4NSwiZXhwIjoxNzkzMDg1MTg1fQ.sSJGPKrMWnE4UEes9w7BaFmEY86WxRLHyeN9Dpv593M
+}
+
+docs {
+  # VULN-04 Remediation Verification
+  
+  ## Objective:
+  Verify that invalid IDs or database errors are intercepted and returned with clean status codes (HTTP 400 Bad Request or HTTP 404 Not Found) with generic error messages, completely hiding database internals, model names, and schema paths.
+  
+  ## Expected Result:
+  HTTP 400 / 404:
+  `{"success": false, "message": "Invalid ID format or resource not found"}`
+  
+  Capture a screenshot for your AFTER evidence!
+}
