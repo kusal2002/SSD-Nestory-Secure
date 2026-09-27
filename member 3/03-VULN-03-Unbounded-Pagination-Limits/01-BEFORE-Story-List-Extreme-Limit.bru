@@ -1,0 +1,31 @@
+meta {
+  name: 01. BEFORE - Unbounded Pagination Limit (DoS)
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:5050/api/stories?limit=1000000
+  body: none
+  auth: bearer
+}
+
+params:query {
+  limit: 1000000
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhYjc3YjdkNTU0NzM2MWU2NGQwMjQxOSIsImlhdCI6MTc5MDQ5MzE4NSwiZXhwIjoxNzkzMDg1MTg1fQ.sSJGPKrMWnE4UEes9w7BaFmEY86WxRLHyeN9Dpv593M
+}
+
+docs {
+  # VULN-03: Unbounded Resource Consumption via Pagination
+  
+  ## Objective:
+  Demonstrate that the API accepts an arbitrary `limit` value without an upper boundary, allowing clients to request excessive records at once and exhaust memory/CPU.
+  
+  ## How to test:
+  1. Send the request with `?limit=1000000`.
+  2. Notice that the server does not enforce a maximum limit.
+  3. Capture a screenshot for your BEFORE evidence!
+}

@@ -9,6 +9,12 @@ const mapAgeToGroup = (age) => {
     return 'young-adult';
 };
 
+// Helper function to safely escape regex metacharacters
+const escapeRegex = (string) => {
+    if (typeof string !== 'string') return '';
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
 exports.listStories = async (query, user) => {
     const { page = 1, limit = 10, search, ageGroup, genre, readingLevel, source } = query;
 
@@ -19,42 +25,69 @@ exports.listStories = async (query, user) => {
 
         if (child) {
             filter.ageGroup = mapAgeToGroup(child.age);
-        } else if (ageGroup) {
-            filter.ageGroup = ageGroup;
+        } else if (ageGroup && typeof ageGroup === 'string') {
+            filter.ageGroup = ageGroup.trim();
         }
     } else if (user && user.ageGroup) {
         filter.ageGroup = user.ageGroup;
-    } else if (ageGroup) {
-        filter.ageGroup = ageGroup;
+    } else if (ageGroup && typeof ageGroup === 'string') {
+        filter.ageGroup = ageGroup.trim();
     }
 
-    if (readingLevel) filter.readingLevel = readingLevel;
-    if (source) filter.source = source;
-    if (genre) filter.genres = { $in: [genre] };
-
-    if (search) {
-        filter.$or = [
-            { title: { $regex: search, $options: 'i' } },
-            { author: { $regex: search, $options: 'i' } },
-            { description: { $regex: search, $options: 'i' } }
-        ];
+    // Whitelist and type-check readingLevel to prevent NoSQL operator injection
+    if (readingLevel && typeof readingLevel === 'string') {
+        const allowedLevels = ['beginner', 'intermediate', 'advanced'];
+        if (allowedLevels.includes(readingLevel.trim().toLowerCase())) {
+            filter.readingLevel = readingLevel.trim().toLowerCase();
+        }
     }
 
-    const skip = (Number(page) - 1) * Number(limit);
+    // Whitelist and type-check source to prevent NoSQL operator injection (e.g. source[$ne]=internal)
+    if (source && typeof source === 'string') {
+        const allowedSources = ['internal', 'google'];
+        if (allowedSources.includes(source.trim().toLowerCase())) {
+            filter.source = source.trim().toLowerCase();
+        }
+    }
+
+    // Type-check genre to ensure only primitive string is passed
+    if (genre && typeof genre === 'string' && genre.trim().length > 0) {
+        filter.genres = { $in: [genre.trim()] };
+    }
+
+    if (search && typeof search === 'string') {
+        // Enforce maximum length of 100 characters and escape regex special characters
+        const trimmedSearch = search.trim().slice(0, 100);
+        if (trimmedSearch.length > 0) {
+            const sanitizedSearch = escapeRegex(trimmedSearch);
+            filter.$or = [
+                { title: { $regex: sanitizedSearch, $options: 'i' } },
+                { author: { $regex: sanitizedSearch, $options: 'i' } },
+                { description: { $regex: sanitizedSearch, $options: 'i' } }
+            ];
+        }
+    }
+
+    // Enforce strict pagination bounds (min: 1, default: 10, max: 50)
+    const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
+    const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 50);
+
+    const skip = (parsedPage - 1) * parsedLimit;
 
     const [stories, total] = await Promise.all([
         Story.find(filter)
             .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(Number(limit)),
+            .limit(parsedLimit),
         Story.countDocuments(filter)
     ]);
 
     return {
         stories,
         total,
-        page: Number(page),
-        pages: Math.ceil(total / Number(limit))
+        page: parsedPage,
+        limit: parsedLimit,
+        pages: Math.ceil(total / parsedLimit)
     };
 };
 
@@ -156,7 +189,7 @@ exports.filterByReadingLevel = (stories, level) => {
 exports.filterByAgeGroup = (stories, ageGroup) => {
     if (!Array.isArray(stories)) return [];
     if (!ageGroup) return stories;
-    return stories.filter(story => 
+    return stories.filter(story =>
         story.ageGroup && (story.ageGroup.includes(ageGroup) || Array.isArray(story.ageGroup) && story.ageGroup.includes(ageGroup))
     );
 };
@@ -167,7 +200,7 @@ exports.filterByAgeGroup = (stories, ageGroup) => {
 exports.filterByGenre = (stories, genre) => {
     if (!Array.isArray(stories)) return [];
     if (!genre) return stories;
-    return stories.filter(story => 
+    return stories.filter(story =>
         Array.isArray(story.genres) && story.genres.includes(genre)
     );
 };

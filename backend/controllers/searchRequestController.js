@@ -1,10 +1,11 @@
+const mongoose = require('mongoose');
 const SearchRequest = require('../models/SearchRequest');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 const { getIo } = require('../realtime/socketServer');
 const { notifyAdmins } = require('../utils/notificationHelper');
 
-exports.createSearchRequest = async (req, res) => {
+exports.createSearchRequest = async (req, res, next) => {
   try {
     if (req.user?.role !== 'child') {
       return res.status(403).json({
@@ -53,14 +54,11 @@ exports.createSearchRequest = async (req, res) => {
       data: request,
     });
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to create search request',
-    });
+    next(error);
   }
 };
 
-exports.getPendingRequests = async (req, res) => {
+exports.getPendingRequests = async (req, res, next) => {
   try {
     if (req.user?.role !== 'admin') {
       return res.status(403).json({
@@ -78,19 +76,24 @@ exports.getPendingRequests = async (req, res) => {
       data: requests,
     });
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to load search requests',
-    });
+    next(error);
   }
 };
 
-exports.markReviewing = async (req, res) => {
+exports.markReviewing = async (req, res, next) => {
   try {
     if (req.user?.role !== 'admin') {
       return res.status(403).json({
         success: false,
         message: 'Only admins can review search requests',
+      });
+    }
+
+    // Validate ObjectId format to prevent CastError schema disclosure
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid search request ID format',
       });
     }
 
@@ -113,19 +116,24 @@ exports.markReviewing = async (req, res) => {
       data: request,
     });
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to update search request',
-    });
+    next(error);
   }
 };
 
-exports.ignoreRequest = async (req, res) => {
+exports.ignoreRequest = async (req, res, next) => {
   try {
     if (req.user?.role !== 'admin') {
       return res.status(403).json({
         success: false,
         message: 'Only admins can ignore search requests',
+      });
+    }
+
+    // Validate ObjectId format to prevent CastError schema disclosure
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid search request ID format',
       });
     }
 
@@ -148,9 +156,6 @@ exports.ignoreRequest = async (req, res) => {
       data: request,
     });
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to ignore search request',
-    });
+    next(error);
   }
 };

@@ -97,7 +97,7 @@ exports.getMyMessages = async (req, res) => {
     if (!ctx) return;
 
     const { family } = ctx;
-    const limit = Number(req.query.limit) || 50;
+    const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 100);
     const before =
       typeof req.query.before === "string" ? req.query.before : undefined;
 
@@ -136,6 +136,13 @@ exports.sendMessage = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Message content is required",
+      });
+    }
+
+    if (content.length > 2000) {
+      return res.status(400).json({
+        success: false,
+        message: "Message content cannot exceed 2000 characters",
       });
     }
 

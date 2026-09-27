@@ -1,0 +1,29 @@
+meta {
+  name: 03. Login as Child
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "yohan@gmail.com",
+    "password": "abc123"
+  }
+}
+
+script:post-response {
+  if (res.body && res.body.data && res.body.data.token) {
+    bru.setEnvVar("token", res.body.data.token);
+    bru.setEnvVar("childToken", res.body.data.token);
+  }
+}

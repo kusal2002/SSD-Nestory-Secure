@@ -67,10 +67,10 @@ exports.updateProfileValidation = [
     .withMessage("Please provide a valid email")
     .normalizeEmail({ gmail_remove_dots: false }),
 
-  body("password")
+  body("currentPassword")
     .optional()
-    .isLength({ min: 6 })
-    .withMessage("Password must be at least 6 characters long"),
+    .isString()
+    .withMessage("Current password must be a string"),
 
   body("phoneNumber")
     .optional()

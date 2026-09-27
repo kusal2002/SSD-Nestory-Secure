@@ -74,6 +74,7 @@ const userSchema = new mongoose.Schema(
     },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
+    passwordChangedAt: Date,
   },
   {
     timestamps: true,
@@ -99,11 +100,24 @@ userSchema.pre("save", async function (next) {
 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
+
+  // Record when the password changed so tokens issued earlier are rejected.
+  // Backdated 1s because JWT "iat" has one-second precision, which keeps the
+  // fresh token issued in the same request valid.
+  if (!this.isNew) {
+    this.passwordChangedAt = new Date(Date.now() - 1000);
+  }
 });
 
 // Compare entered password with hashed password
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// True if the password was changed after the token was issued
+userSchema.methods.changedPasswordAfter = function (tokenIssuedAt) {
+  if (!this.passwordChangedAt) return false;
+  return tokenIssuedAt * 1000 < this.passwordChangedAt.getTime();
 };
 
 module.exports = mongoose.model("User", userSchema);

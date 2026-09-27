@@ -1,0 +1,29 @@
+meta {
+  name: 02. BEFORE - Search Catastrophic Backtracking (ReDoS)
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:5050/api/stories?search=((a+)+)+$
+  body: none
+  auth: bearer
+}
+
+params:query {
+  search: ((a+)+)+$
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhYjc3YjdkNTU0NzM2MWU2NGQwMjQxOSIsImlhdCI6MTc5MDQ5MzE4NSwiZXhwIjoxNzkzMDg1MTg1fQ.sSJGPKrMWnE4UEes9w7BaFmEY86WxRLHyeN9Dpv593M
+}
+
+docs {
+  # VULN-02: Regular Expression Denial of Service (ReDoS)
+  
+  ## Objective:
+  Demonstrate injection of catastrophic nested quantifier regex pattern `((a+)+)+$` into MongoDB `$regex` query, causing CPU resource exhaustion.
+  
+  ## Expected Result:
+  Before fix: The query takes a significant amount of CPU or is executed directly as a raw regex against all text fields.
+}
