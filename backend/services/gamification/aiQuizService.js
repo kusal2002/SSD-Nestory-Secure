@@ -8,7 +8,7 @@ class AIQuizService {
     const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_BOOKS_API_KEY;
     if (apiKey) {
       this.genAI = new GoogleGenerativeAI(apiKey);
-      console.log(`[AIQuizService] Initialized with API Key: ${apiKey.substring(0, 6)}...`);
+      console.log("[AIQuizService] Initialized successfully");
       // Using gemini-2.0-flash-exp (or gemini-1.5-flash as fallback) 
       // as gemini-3 is not a publicly listed identifier yet in the standard SDK
       this.model = this.genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
