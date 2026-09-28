@@ -93,10 +93,14 @@ router.get("/progress/:bookId", protect, getProgressByBook);
 
 router.delete("/:sessionId", protect, deleteSession);
 
-router.get("/monthly/:childId", protect, getMonthlyAnalytics);
+//vulnerability 3 identified 
+// router.get("/monthly/:childId", protect, getMonthlyAnalytics);
+// router.get("/top-books/:childId", protect, getTopBooks);
+// router.get("/achievements/:childId", protect, getAchievements);
 
-router.get("/top-books/:childId", protect, getTopBooks);
-
-router.get("/achievements/:childId", protect, getAchievements);
+//new
+router.get("/monthly/:childId", protect, parentOnly, childIdParamValidation, handleValidationErrors, getMonthlyAnalytics);
+router.get("/top-books/:childId", protect,parentOnly, childIdParamValidation, handleValidationErrors, getTopBooks);
+router.get("/achievements/:childId", protect, parentOnly, childIdParamValidation, handleValidationErrors, getAchievements);
 
 module.exports = router;

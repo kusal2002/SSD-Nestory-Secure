@@ -1041,6 +1041,15 @@ exports.deleteSession = async (req, res) => {
 exports.getMonthlyAnalytics = async (req, res) => {
   try {
     const { childId } = req.params;
+    // Validate childId
+    const childAccess = await ensureOwnedChild(childId, req.user._id);
+    
+    if (!childAccess.ok) {
+      return res.status(childAccess.status).json({
+        success: false,
+        message: childAccess.message,
+      });
+    }
 
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -1090,6 +1099,15 @@ exports.getMonthlyAnalytics = async (req, res) => {
 exports.getTopBooks = async (req, res) => {
   try {
     const { childId } = req.params;
+    // Validate childId
+    const childAccess = await ensureOwnedChild(childId, req.user._id);
+
+    if (!childAccess.ok) {
+      return res.status(childAccess.status).json({
+        success: false,
+        message: childAccess.message,
+      });
+    }
 
     const sessions = await ReadingSession.find({
       childId: new mongoose.Types.ObjectId(childId),
@@ -1134,6 +1152,15 @@ exports.getTopBooks = async (req, res) => {
 exports.getAchievements = async (req, res) => {
   try {
     const { childId } = req.params;
+    // Validate childId
+    const childAccess = await ensureOwnedChild(childId, req.user._id);
+
+    if (!childAccess.ok) {
+      return res.status(childAccess.status).json({
+        success: false,
+        message: childAccess.message,
+      });
+    }
 
     const sessions = await ReadingSession.find({
       childId: new mongoose.Types.ObjectId(childId),
@@ -1332,3 +1359,4 @@ exports.compareChildrenProgress = async (req, res) => {
     });
   }
 };
+
