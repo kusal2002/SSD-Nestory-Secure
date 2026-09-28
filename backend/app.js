@@ -1,11 +1,21 @@
+// dotenv
+const dotenv = require("dotenv");
+
+// Load environment variables
+dotenv.config();
+const helmet = require("helmet");
 const express = require("express");
+const path = require("path");
 const cors = require("cors");
+const corsOptions = require("./config/corsOptions");
 const requestLogger = require("./middleware/requestLogger");
 const errorHandler = require("./middleware/errorHandler");
+const cookieParser = require("cookie-parser");
 
 const app = express();
-
-app.use(cors());
+app.disable("x-powered-by");
+app.use(helmet());
+app.use(cors(corsOptions));
 
 // Add custom error handler for body-parser before json() middleware
 app.use(express.json());
@@ -24,10 +34,11 @@ app.use((error, req, res, next) => {
 });
 
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 app.use(requestLogger);
 
 // Serve static files for uploads (must be before API routes)
-app.use('/api/uploads', express.static('backend/uploads'));
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/stories", require("./routes/storyLibrary/storyRoutes"));

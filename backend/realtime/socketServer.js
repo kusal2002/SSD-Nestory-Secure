@@ -52,6 +52,11 @@ const initSocketServer = (httpServer) => {
         return next(new Error("Invalid user"));
       }
 
+      if (user.changedPasswordAfter(decoded.iat)) {
+        console.log("[Socket Auth] Token issued before password change:", decoded.id);
+        return next(new Error("Session expired"));
+      }
+
       socket.user = user;
       
       // Join a private room for the user to receive targeted notifications

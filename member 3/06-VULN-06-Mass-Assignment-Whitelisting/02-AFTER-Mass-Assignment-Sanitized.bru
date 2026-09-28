@@ -1,0 +1,38 @@
+meta {
+  name: 02. AFTER - Whitelisted Fields Only
+  type: http
+  seq: 2
+}
+
+put {
+  url: http://localhost:5050/api/stories/6ab8c2dc5513d120cf611fa1
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhYjc3YjdkNTU0NzM2MWU2NGQwMjQxOSIsImlhdCI6MTc5MDQ5MzE4NSwiZXhwIjoxNzkzMDg1MTg1fQ.sSJGPKrMWnE4UEes9w7BaFmEY86WxRLHyeN9Dpv593M
+}
+
+body:json {
+  {
+    "title": "Secured Story Update",
+    "createdBy": "000000000000000000000000"
+  }
+}
+
+docs {
+  # VULN-06 Remediation Verification
+  
+  ## Objective:
+  Verify that `updateStory` extracts only permitted, user-editable fields and strictly ignores/protects `createdBy`, preventing mass assignment tampering.
+  
+  ## Expected Result:
+  Response returns 200 OK, title is updated to "Secured Story Update", but `createdBy` retains its original legitimate owner ID (does not become "000000000000000000000000").
+  
+  Capture a screenshot for your AFTER evidence!
+}

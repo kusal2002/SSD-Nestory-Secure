@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Member 3 - Input Validation & File Handling",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

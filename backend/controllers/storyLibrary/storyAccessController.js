@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Story = require('../../models/storyLibrary/Story');
 const Child = require('../../models/Child');
 
@@ -15,9 +16,14 @@ const getAgeRangeForGroup = (ageGroup) => {
 // @desc    Check if child can access a story
 // @route   GET /api/stories/:storyId/access/:childId
 // @access  Private
-exports.checkStoryAccess = async (req, res) => {
+exports.checkStoryAccess = async (req, res, next) => {
   try {
     const { storyId, childId } = req.params;
+
+    // Validate ObjectId formats to prevent CastError schema disclosure
+    if (!mongoose.Types.ObjectId.isValid(storyId) || !mongoose.Types.ObjectId.isValid(childId)) {
+      return res.status(400).json({ success: false, message: 'Invalid ID format provided' });
+    }
 
     const story = await Story.findById(storyId);
     if (!story) {
@@ -55,6 +61,6 @@ exports.checkStoryAccess = async (req, res) => {
     });
 
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };

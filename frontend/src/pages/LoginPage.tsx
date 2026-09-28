@@ -75,6 +75,13 @@ const LoginPage: React.FC = () => {
     }
   };
 
+  const handleWso2Login = () => {
+    const apiBaseUrl =
+      import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+    window.location.href = `${apiBaseUrl.replace(/\/$/, '')}/auth/oidc/login`;
+  };
+
   return (
     <div className="min-h-screen bg-[#F5F1E9] flex items-center justify-center p-4 font-sans selection:bg-rose-200 selection:text-rose-900">
       <div className="w-full max-w-[1000px] flex flex-col md:flex-row bg-white rounded-[3rem] border-2 border-[#E8E2D5] shadow-[0_20px_50px_rgba(0,0,0,0.05)] overflow-hidden animate-fade-in">
@@ -215,6 +222,24 @@ const LoginPage: React.FC = () => {
                   Continue Adventure
                 </>
               )}
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="h-px flex-1 bg-[#E8E2D5]" />
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                Or
+              </span>
+              <div className="h-px flex-1 bg-[#E8E2D5]" />
+            </div>
+
+            <button
+              type="button"
+              onClick={handleWso2Login}
+              disabled={isLoading}
+              className="w-full bg-white text-gray-700 border-2 border-[#E8E2D5] rounded-[1.5rem] py-4 font-black uppercase text-xs tracking-[0.15em] hover:border-rose-300 hover:bg-rose-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+            >
+              <Lock size={18} className="text-rose-500" />
+              Continue with WSO2
             </button>
 
             {/* Footer Link */}

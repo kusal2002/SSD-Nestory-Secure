@@ -80,6 +80,20 @@ class AuthService {
     };
   }
 
+  async exchangeOidcCode(code: string): Promise<AuthResponse> {
+    const response = await apiClient.getInstance().post<ApiResponse<BackendAuthPayload>>(
+      '/auth/oidc/exchange',
+      { code }
+    );
+
+    const payload = response.data.data!;
+
+    return {
+      user: this.normalizeUser(payload),
+      token: payload.token || '',
+    };
+  }
+
   async getCurrentUser(): Promise<User> {
     const response = await apiClient.getInstance().get<ApiResponse<BackendAuthPayload>>(
       '/auth/me'
@@ -96,18 +110,19 @@ class AuthService {
   }
 
   async changePassword(data: { currentPassword: string; newPassword: string }): Promise<void> {
-    await apiClient.getInstance().put<ApiResponse<{ mustChangePassword: boolean }>>(
-      '/auth/change-password',
-      data
-    );
+    const response = await apiClient.getInstance().put<
+      ApiResponse<{ mustChangePassword: boolean; token?: string }>
+    >('/auth/change-password', data);
+
+    // The old token is invalidated by the password change; switch to the new one
+    const newToken = response.data.data?.token;
+    if (newToken) {
+      apiClient.setToken(newToken);
+    }
   }
 
-  async forgotPassword(email: string): Promise<{ resetToken: string; expiresIn: string }> {
-    const response = await apiClient.getInstance().post<
-      ApiResponse<{ resetToken: string; expiresIn: string }>
-    >('/auth/forgot-password', { email });
-
-    return response.data.data!;
+  async forgotPassword(email: string): Promise<void> {
+    await apiClient.getInstance().post<ApiResponse<null>>('/auth/forgot-password', { email });
   }
 
   async resetPassword(token: string, newPassword: string): Promise<AuthResponse> {

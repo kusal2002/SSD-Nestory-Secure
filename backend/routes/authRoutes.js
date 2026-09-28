@@ -24,10 +24,18 @@ const {
   forgotPasswordValidation,
   resetPasswordValidation,
 } = require("../validators/authValidator");
+const {
+  startOidcLogin,
+  handleOidcCallback,
+  exchangeOidcLoginHandoff,
+} = require("../controllers/oidcController");
+
+// Authentication rate limiting
+const { authLimiter } = require("../middleware/rateLimitMiddleware");
 
 // Public routes
 router.post("/register", registerValidation, handleValidationErrors, register);
-router.post("/login", loginValidation, handleValidationErrors, login);
+router.post("/login", authLimiter, loginValidation, handleValidationErrors, login);
 router.post(
   "/forgot-password",
   forgotPasswordValidation,
@@ -40,6 +48,9 @@ router.post(
   handleValidationErrors,
   resetPassword
 );
+router.get("/oidc/login", startOidcLogin);
+router.get("/oidc/callback", handleOidcCallback);
+router.post("/oidc/exchange", exchangeOidcLoginHandoff);
 
 // Protected routes
 router.get("/me", protect, getMe);
