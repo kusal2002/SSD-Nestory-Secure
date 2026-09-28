@@ -22,7 +22,10 @@ router.put('/google/sync/:storyId', protect, admin, storySyncController.syncStor
 
 //Public
 router.get('/', protect, storyController.getStories);
-router.get('/:id', storyController.getStoryById);
+//old vulnerability
+// router.get('/:id', storyController.getStoryById);
+router.get('/:id', protect, storyController.getStoryById);
+
 // Age restriction check (Child age vs Story ageGroup)
 router.get('/:storyId/access/:childId', protect, checkStoryAccess);
 
@@ -32,3 +35,4 @@ router.put('/:id', protect, admin, upload.single('pdf'), storyController.updateS
 router.delete('/:id', protect, admin, storyController.deleteStory);
 
 module.exports = router;
+

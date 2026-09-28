@@ -2,6 +2,8 @@ const successResponse = require('../../utils/responseFormatter');
 const { searchGoogleBooks } = require('../../services/storyLibrary/googleBooksService');
 const storyService = require('../../services/storyLibrary/storyService');
 
+//fix vulnerability
+const Assignment = require('../../models/Assignment');
 
 exports.searchExternalBooks = async (req, res, next) => {
     try {
@@ -46,6 +48,22 @@ exports.getStoryById = async (req, res, next) => {
         return successResponse(res, 200, 'Story fetched successfully', plain);
     } catch (err) {
         next(err);
+    }
+
+    //fix vulnerability: check if the story is assigned to the child if the user is a child
+    if (req.user?.normalizedRole === 'child') {
+        if (!req.user.childProfile) {
+            return res.status(403).json({ success: false, message: 'Child profile is not linked to this account' });
+        }
+        const assignment = await Assignment.findOne({
+            child: req.user.childProfile,
+            story: story._id,
+            status: { $ne: 'completed' }
+        });
+
+        if (!assignment) {
+            return res.status(403).json({ success: false, message: 'Access denied. This story is not assigned to the child.' });
+        }
     }
 };
 
