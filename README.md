@@ -13,8 +13,8 @@ The assignment focused on identifying security vulnerabilities in an existing so
 | # | Member Name | Index / Registration Number | Main Responsibility |
 |---|---|---|---|
 | 1 | Perera M.E.N. | IT23201514 | Authentication Security |
-| 2 | Udawatta V.D. | [Add Registration Number] | Authorization / Access Control |
-| 3 | Saparamadu M.D.K.S. | [Add Registration Number] | Input Validation, File Handling and API Data Security |
+| 2 | Udawatta V.D. | IT23149908 | Authorization / Access Control |
+| 3 | Saparamadu M.D.K.S. | IT23311336 | Input Validation, File Handling and API Data Security |
 | 4 | Ransika A.D.L. | IT23308466 | Security Configuration and OAuth/OpenID Connect Integration |
 
 > Replace the missing registration numbers before final submission.
@@ -108,8 +108,6 @@ is available at:
 
 **YouTube Video:**  
 https://youtu.be/jWAd9_0zEOA
-
-> The final video duration must not exceed 20 minutes.
 
 ---
 
