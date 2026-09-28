@@ -17,8 +17,6 @@ The assignment focused on identifying security vulnerabilities in an existing so
 | 3 | Saparamadu M.D.K.S. | IT23311336 | Input Validation, File Handling and API Data Security |
 | 4 | Ransika A.D.L. | IT23308466 | Security Configuration and OAuth/OpenID Connect Integration |
 
-> Replace the missing registration numbers before final submission.
-
 ---
 
 ## Original Project Repository
