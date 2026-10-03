@@ -54,6 +54,13 @@ module.exports = defineConfig({
       },
     },
     {
+      name: 'security',
+      testMatch: '**/security/**/*.spec.js',
+      use: {
+        baseURL: 'http://127.0.0.1:5000',
+      },
+    },
+    {
       name: 'api',
       testMatch: ['**/e2e/**/reading.api.spec.js', '**/e2e/**/reading-analytics.unit.spec.js'],
       use: {

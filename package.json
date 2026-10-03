@@ -8,6 +8,7 @@
     "test:unit": "playwright test tests/unit",
     "test:integration": "playwright test tests/integration",
     "test:system": "playwright test tests/system",
+    "test:security": "playwright test --project=security",
     "test:report": "playwright show-report",
     "test:debug": "playwright test --debug",
     "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
